@@ -2,6 +2,8 @@
 
 API REST didática da disciplina **Desenvolvimento de Aplicações para Internet**, que demonstra a consulta de um projeto em JSON com Java e Spring Boot. Inclui testes do controller, empacotamento com Maven, imagem Docker e validação por GitHub Actions.
 
+A API foi publicada com **Docker e Coolify em uma VPS Oracle Cloud ARM64 (Ampere A1)**. O GitHub Actions realiza a compilação e os testes; a publicação é iniciada separadamente pelo professor no Coolify.
+
 ## ✨ Funcionalidades
 
 - Consulta de um projeto fixo pelo endpoint `GET /api/projetos/1`.
@@ -22,6 +24,8 @@ Os dados são definidos no código, sem banco de dados ou serviços externos. O 
 | JUnit Jupiter e MockMvc | Testes, pelo `spring-boot-starter-webmvc-test` |
 | Docker | Build em múltiplos estágios e execução do JAR |
 | GitHub Actions | Compilação e testes automatizados |
+| Coolify | Gerenciamento do build, deploy, contêiner e domínio |
+| Oracle Cloud | Hospedagem em VPS ARM64 (Ampere A1) |
 
 As dependências e o plugin de empacotamento estão definidos no [pom.xml](pom.xml).
 
@@ -172,7 +176,11 @@ O workflow [java-ci.yml](.github/workflows/java-ci.yml) executa `mvn -B verify` 
 
 ## 🚀 Publicação no Coolify
 
-Com o repositório disponível no GitHub e uma instância do Coolify configurada:
+A publicação utilizada na disciplina é feita em uma VPS **Oracle Cloud ARM64 (Ampere A1)**. O Coolify obtém o código do GitHub, constrói a imagem a partir do Dockerfile e executa a aplicação em um contêiner Docker. Seu proxy reverso encaminha as requisições do domínio público para a porta interna `8080`, sem necessidade de expor essa porta diretamente à Internet.
+
+O deploy é iniciado pelo professor no Coolify. Um build aprovado no GitHub Actions não publica a aplicação automaticamente. Da mesma forma, alterações em forks dos estudantes não modificam a API pública do professor.
+
+Para reproduzir a configuração em uma instância do Coolify:
 
 1. Crie um recurso a partir de **Public Repository** ou da integração **GitHub App**.
 2. Selecione o repositório e a branch que deseja publicar.
@@ -181,9 +189,29 @@ Com o repositório disponível no GitHub e uma instância do Coolify configurada
 5. Configure o domínio e faça o deploy.
 6. Acesse `/api/projetos/1` no domínio publicado, usando HTTP ou HTTPS conforme a configuração do serviço.
 
-Esse fluxo realiza a compilação no servidor e dispensa Java e Maven na máquina local. Em servidores ARM64/aarch64, como Oracle Ampere A1, as imagens base precisam estar disponíveis para essa arquitetura.
+Esse fluxo realiza a compilação no servidor e dispensa a instalação de Java, Maven ou Docker na máquina do estudante. As imagens base precisam estar disponíveis para a arquitetura `linux/arm64` da VPS.
+
+### Healthcheck
+
+O recurso no Coolify foi configurado para consultar o próprio endpoint da aplicação:
+
+| Configuração | Valor |
+| --- | --- |
+| Método e protocolo | `GET`, HTTP |
+| Host e porta | `localhost`, `8080` |
+| Caminho | `/api/projetos/1` |
+| Status esperado | `200` |
+| Texto de resposta esperado | Vazio |
+| Intervalo | 30 segundos |
+| Timeout | 5 segundos |
+| Tentativas | 3 |
+| Período inicial | 60 segundos |
+
+Essa configuração pertence ao recurso no Coolify; não há instrução `HEALTHCHECK` no Dockerfile. A verificação acompanha a disponibilidade do endpoint e não substitui os testes automatizados.
 
 Os dados de exemplo são definidos em [ProjetoController.java](src/main/java/br/edu/ads/projetosapi/controller/ProjetoController.java). Alterações nesse arquivo exigem uma nova compilação e um novo deploy para aparecerem na aplicação publicada.
+
+Ao personalizar os dados, atualize também os valores esperados em `ProjetoControllerTest.java`. O fluxo da atividade é editar o código e os testes no fork, fazer commit e conferir o GitHub Actions. O professor realiza a publicação das versões selecionadas no Coolify.
 
 ## 👨‍💻 Autor
 
@@ -191,4 +219,4 @@ Os dados de exemplo são definidos em [ProjetoController.java](src/main/java/br/
 
 🔗 LinkedIn: [linkedin.com/in/robertdemelo](https://www.linkedin.com/in/robertdemelo/)
 
-☕ Java | Spring Boot | Maven | Docker | APIs REST | Testes automatizados
+☕ Java | Spring Boot | Maven | Docker | Coolify | Oracle Cloud | APIs REST
