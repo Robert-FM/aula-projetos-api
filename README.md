@@ -1,35 +1,194 @@
-# Projetos API — Spring Boot e Coolify
+﻿# 🌐 Projetos API
 
-Exemplo didatico para a disciplina Desenvolvimento de Aplicacoes para Internet.
+API REST didática da disciplina **Desenvolvimento de Aplicações para Internet**, que demonstra a consulta de um projeto em JSON com Java e Spring Boot. Inclui testes do controller, empacotamento com Maven, imagem Docker e validação por GitHub Actions.
 
-## Endpoint
+## ✨ Funcionalidades
 
-`GET /api/projetos/1`
+- Consulta de um projeto fixo pelo endpoint `GET /api/projetos/1`.
+- Resposta JSON com identificador, nome, responsável e status.
+- Configuração da porta por variável de ambiente.
+- Execução local ou em contêiner e publicação no Coolify.
 
-Resposta esperada (ordem das propriedades pode variar):
+Os dados são definidos no código, sem banco de dados ou serviços externos. O caminho `/api/projetos/1` é literal: não há consulta por identificador variável, listagem, cadastro, atualização ou exclusão de projetos.
 
-```json
-{"id":1,"nome":"Sistema de Gestao Academica","responsavel":"Equipe ADS","status":"Em desenvolvimento"}
+## 🛠️ Tecnologias
+
+| Tecnologia | Uso no projeto |
+| --- | --- |
+| Java 21 | Linguagem e versão configurada no Maven, Docker e CI |
+| Spring Boot 4.0.9 | Inicialização e configuração da aplicação |
+| Spring Web MVC | Endpoint HTTP, pelo `spring-boot-starter-webmvc` |
+| Maven | Dependências, testes e empacotamento |
+| JUnit Jupiter e MockMvc | Testes, pelo `spring-boot-starter-webmvc-test` |
+| Docker | Build em múltiplos estágios e execução do JAR |
+| GitHub Actions | Compilação e testes automatizados |
+
+As dependências e o plugin de empacotamento estão definidos no [pom.xml](pom.xml).
+
+## 📁 Organização do projeto
+
+```text
+projetos-api/
+├── .github/workflows/java-ci.yml
+├── src/
+│   ├── main/
+│   │   ├── java/br/edu/ads/projetosapi/
+│   │   │   ├── ProjetosApiApplication.java
+│   │   │   └── controller/ProjetoController.java
+│   │   └── resources/application.properties
+│   └── test/java/br/edu/ads/projetosapi/controller/
+│       └── ProjetoControllerTest.java
+├── .dockerignore
+├── Dockerfile
+├── pom.xml
+└── README.md
 ```
 
-## Publicar sem instalar ferramentas locais
+`ProjetosApiApplication` é o ponto de entrada. O Spring MVC encaminha a requisição para `ProjetoController`, que retorna um `Map` com os dados fixos, serializado em JSON. `application.properties` define o nome da aplicação, o endereço de escuta e a porta.
 
-1. Crie um repositorio GitHub chamado `projetos-api` usando o navegador.
-2. Envie todos os arquivos da pasta deste projeto, preservando `src/main/...`.
-3. No Coolify, abra um projeto e use `+ New > Public Repository` (ou GitHub App).
-4. Informe o repositorio, a branch principal e escolha **Dockerfile** como Build Pack.
-5. Base Directory: `/`; Dockerfile Location: `/Dockerfile` (ajuste conforme a interface).
-6. Ports Exposes: `8080`.
-7. Configure um dominio gerado pelo Coolify, se disponivel, e clique em Deploy.
-8. Acesse `https://SEU-ENDERECO/api/projetos/1` (ou http conforme configurado).
+## 📦 Preparação do ambiente
 
-## Como modificar
+Após clonar o repositório, entre na pasta `projetos-api` e escolha uma das formas de execução abaixo.
 
-Edite `src/main/java/br/edu/ads/projetosapi/controller/ProjetoController.java` pelo editor Web do GitHub, faca commit e redeploy no Coolify.
+Para execução local, instale **JDK 21** e **Maven**. O Dockerfile utiliza Maven 3.9; o repositório não inclui Maven Wrapper. Confira as ferramentas:
 
-## Observacoes
+```bash
+java -version
+mvn -version
+```
 
-- Java e Maven estao apenas nas imagens Docker de build/execucao da VPS.
-- Esta API usa dados fixos, sem banco de dados.
-- Nao exponha segredos no repositorio.
-- A imagem base precisa suportar ARM64/aarch64 na VPS Oracle Ampere A1.
+O Java informado pelo Maven deve corresponder ao JDK 21. A primeira execução precisa de acesso aos repositórios Maven para baixar as dependências.
+
+Para execução em contêiner, instale o **Docker**, com o daemon em execução. Java e Maven são fornecidos pelas imagens do Dockerfile e dispensam instalação local nessa opção.
+
+## ▶️ Execução
+
+### Com Maven
+
+Na raiz do repositório:
+
+```bash
+mvn spring-boot:run
+```
+
+O Maven resolve as dependências e inicia a aplicação. Por padrão, o endpoint fica disponível em `http://localhost:8080/api/projetos/1`.
+
+Para gerar e executar o JAR:
+
+```bash
+mvn clean package
+java -jar target/projetos-api-0.0.1-SNAPSHOT.jar
+```
+
+O empacotamento também executa os testes. Encerre a aplicação com `Ctrl+C` antes de iniciar outra instância na mesma porta.
+
+### Com Docker
+
+Na raiz do repositório:
+
+```bash
+docker build -t projetos-api .
+docker run --rm -p 8080:8080 projetos-api
+```
+
+O build utiliza `maven:3.9-eclipse-temurin-21` para gerar o JAR e `eclipse-temurin:21-jre` para executá-lo. O endpoint fica acessível no mesmo endereço da execução local.
+
+**O Dockerfile ignora a execução dos testes** ao empacotar (`-DskipTests`). Utilize o comando da seção de testes ou o workflow de CI para validá-los.
+
+## ⚙️ Configuração
+
+| Variável | Obrigatória | Finalidade | Padrão |
+| --- | --- | --- | --- |
+| `PORT` | Não | Porta HTTP da aplicação | `8080` |
+
+A aplicação escuta em `0.0.0.0`. Não é necessário criar arquivo `.env` para o fluxo padrão.
+
+Para iniciar em outra porta, por exemplo `8081`:
+
+**PowerShell:**
+
+```powershell
+$env:PORT = "8081"
+mvn spring-boot:run
+```
+
+**Bash:**
+
+```bash
+PORT=8081 mvn spring-boot:run
+```
+
+**Docker:**
+
+```bash
+docker run --rm -e PORT=8081 -p 8081:8081 projetos-api
+```
+
+Nesses exemplos, acesse `http://localhost:8081/api/projetos/1`. Em contêiner, a porta interna do mapeamento deve acompanhar o valor de `PORT`.
+
+## 💻 Consulta à API
+
+Com a aplicação em execução, abra `http://localhost:8080/api/projetos/1` no navegador ou utilize um cliente HTTP.
+
+**Bash com curl:**
+
+```bash
+curl -i http://localhost:8080/api/projetos/1
+```
+
+**PowerShell:**
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/api/projetos/1" -Method Get
+```
+
+Resposta esperada: **HTTP 200**, conteúdo `application/json` e corpo abaixo. A ordem das propriedades pode variar.
+
+```json
+{
+  "id": 1,
+  "nome": "Sistema de Gestao Academica",
+  "responsavel": "Equipe ADS",
+  "status": "Em desenvolvimento"
+}
+```
+
+O caminho `/api/projetos/999` retorna **HTTP 404**, pois não existe um endpoint mapeado para ele. A raiz `/` também não possui página ou endpoint definido.
+
+## ✅ Testes e integração contínua
+
+Execute a validação com Maven:
+
+```bash
+mvn -B verify
+```
+
+Os dois testes de [ProjetoControllerTest.java](src/test/java/br/edu/ads/projetosapi/controller/ProjetoControllerTest.java) utilizam `@WebMvcTest` e MockMvc para verificar:
+
+- HTTP 200, tipo de conteúdo JSON e os quatro campos do projeto em `/api/projetos/1`.
+- HTTP 404 ao consultar `/api/projetos/999`.
+
+O workflow [java-ci.yml](.github/workflows/java-ci.yml) executa `mvn -B verify` em Ubuntu com Temurin 21 a cada push, pull request ou acionamento manual. Ele valida o projeto; não publica a aplicação no Coolify.
+
+## 🚀 Publicação no Coolify
+
+Com o repositório disponível no GitHub e uma instância do Coolify configurada:
+
+1. Crie um recurso a partir de **Public Repository** ou da integração **GitHub App**.
+2. Selecione o repositório e a branch que deseja publicar.
+3. Escolha **Dockerfile** como Build Pack, com a raiz do repositório como diretório base (`/`) e o arquivo `/Dockerfile`.
+4. Configure a porta exposta como `8080`, mantendo o padrão da aplicação. Se definir `PORT`, ajuste também a porta configurada na plataforma.
+5. Configure o domínio e faça o deploy.
+6. Acesse `/api/projetos/1` no domínio publicado, usando HTTP ou HTTPS conforme a configuração do serviço.
+
+Esse fluxo realiza a compilação no servidor e dispensa Java e Maven na máquina local. Em servidores ARM64/aarch64, como Oracle Ampere A1, as imagens base precisam estar disponíveis para essa arquitetura.
+
+Os dados de exemplo são definidos em [ProjetoController.java](src/main/java/br/edu/ads/projetosapi/controller/ProjetoController.java). Alterações nesse arquivo exigem uma nova compilação e um novo deploy para aparecerem na aplicação publicada.
+
+## 👨‍💻 Autor
+
+**Robert Melo**
+
+🔗 LinkedIn: [linkedin.com/in/robertdemelo](https://www.linkedin.com/in/robertdemelo/)
+
+☕ Java | Spring Boot | Maven | Docker | APIs REST | Testes automatizados
