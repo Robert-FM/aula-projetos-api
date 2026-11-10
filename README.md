@@ -1,8 +1,48 @@
-﻿# 🌐 Projetos API
+# 🌐 Projetos API
 
 API REST didática da disciplina **Desenvolvimento de Aplicações para Internet**, que demonstra a consulta de um projeto em JSON com Java e Spring Boot. Inclui testes do controller, empacotamento com Maven, imagem Docker e validação por GitHub Actions.
 
 A API foi publicada com **Docker e Coolify em uma VPS Oracle Cloud ARM64 (Ampere A1)**. O GitHub Actions realiza a compilação e os testes; a publicação é iniciada separadamente pelo professor no Coolify.
+
+> 🎓 **Atenção, estudantes:** para a atividade da disciplina, **não é necessário instalar Java, Maven, Docker ou Spring Boot**. O trabalho será feito **pelo navegador**, no GitHub. A execução dos testes ocorre nos servidores do GitHub Actions. O professor demonstra a versão publicada no Coolify.
+
+**Links rápidos:** [Repositório original](https://github.com/Robert-FM/aula-projetos-api) · [API publicada (demonstração)](http://dzk6uwntexlvtb0incigzdci.147.15.87.118.sslip.io/api/projetos/1) · [Documentação Spring REST](https://spring.io/guides/gs/rest-service/)
+
+## 🎯 Atividade prática da disciplina — sem instalar nada
+
+**Situação-problema (PBL):** uma equipe recebeu uma API REST de projetos acadêmicos que já funciona. Sua missão é **adaptar os dados do projeto**, preservar o contrato HTTP/JSON e demonstrar, por meio de testes automatizados, que a alteração não comprometeu a API.
+
+**Requisitos:** computador com navegador e Internet, conta gratuita no GitHub e acesso ao caderno de atividades. A prática será feita em **duplas**.
+
+### Etapas da equipe
+
+1. **Investigar (antes de editar).** Abra a [documentação oficial de serviços REST do Spring](https://spring.io/guides/gs/rest-service/) e identifique o papel de `@RestController`, `@GetMapping` e da resposta JSON. Registre por que `GET /api/projetos/1` é um endpoint de consulta.
+2. **Criar um fork.** Acesse [o repositório original](https://github.com/Robert-FM/aula-projetos-api), clique em **Fork** e crie uma cópia na conta de um integrante. Confirme que você está editando o **fork**, não o projeto do professor.
+3. **Personalizar o controller.** No fork, abra [`ProjetoController.java`](src/main/java/br/edu/ads/projetosapi/controller/ProjetoController.java), clique no ícone de edição e modifique os **valores** de `nome`, `responsavel` e `status` para representar o projeto escolhido. Preserve o endpoint `/api/projetos/1`, os nomes das propriedades JSON e o campo `id` com valor `1`.
+4. **Atualizar o teste.** Abra [`ProjetoControllerTest.java`](src/test/java/br/edu/ads/projetosapi/controller/ProjetoControllerTest.java) e altere os valores esperados em `deveRetornarProjetoEmJson()` para corresponder aos dados escolhidos. Preserve o teste `deveRetornar404ParaCaminhoInexistente()`.
+5. **Salvar as alterações.** Faça **Commit changes** no GitHub com uma mensagem explicativa, por exemplo: `Personaliza dados da API e ajusta testes`.
+6. **Executar e conferir o CI.** No seu fork, acesse **Actions**, habilite a execução dos workflows se o GitHub solicitar, abra a execução associada ao seu commit e confira os logs do Maven. O resultado esperado é **2 testes executados, 0 falhas e 0 erros**, seguido de `BUILD SUCCESS`.
+7. **Investigar uma falha e corrigir.** Para compreender a função dos testes, faça temporariamente **um teste esperar um `nome` diferente do valor retornado pelo controller**, salve e observe a falha no Actions. Depois **corrija o valor esperado**, faça novo commit e confirme novamente os dois testes aprovados. Não altere o contrato da API apenas para forçar o teste a passar.
+8. **Entregar.** Envie o **link do fork**, o link ou identificação do **commit final**, uma evidência da execução **bem-sucedida** do GitHub Actions e as respostas solicitadas no Caderno de Atividades. Registre brevemente o que causou a falha proposital e como ela foi solucionada.
+
+> **Importante:** a atividade termina com o código e os testes validados **no fork**. Os estudantes **não publicam seus forks no Coolify** nesta aula e não precisam de acesso administrativo ao servidor. O GitHub Actions testa o código na nuvem, mas **não inicia uma API pública por conta própria**.
+
+### Critérios para verificar o trabalho
+
+- O fork está acessível e contém um commit com as alterações.
+- O endpoint e as quatro propriedades JSON (`id`, `nome`, `responsavel`, `status`) foram preservados.
+- Os dados personalizados são coerentes com os valores esperados no primeiro teste.
+- O segundo teste continua verificando HTTP 404 para `/api/projetos/999`.
+- A execução final do GitHub Actions mostra os **dois testes aprovados**.
+- A dupla consegue explicar a diferença entre **editar o código**, **validar com CI** e **publicar com Coolify**.
+
+### Demonstração do professor: API publicada
+
+Abra no navegador: **[GET /api/projetos/1 — API da turma](http://dzk6uwntexlvtb0incigzdci.147.15.87.118.sslip.io/api/projetos/1)**.
+
+Essa URL corresponde à versão disponibilizada pelo professor na Oracle Cloud. **Alterações no fork não aparecerão nesse endereço**: para mudar uma aplicação publicada é necessário construir e implantar uma nova versão no ambiente que a hospeda.
+
+---
 
 ## ✨ Funcionalidades
 
@@ -50,9 +90,11 @@ projetos-api/
 
 `ProjetosApiApplication` é o ponto de entrada. O Spring MVC encaminha a requisição para `ProjetoController`, que retorna um `Map` com os dados fixos, serializado em JSON. `application.properties` define o nome da aplicação, o endereço de escuta e a porta.
 
-## 📦 Preparação do ambiente
+## 📦 Preparação do ambiente — **opcional, para execução local**
 
-Após clonar o repositório, entre na pasta `projetos-api` e escolha uma das formas de execução abaixo.
+**Esta seção não é necessária para realizar a atividade da disciplina.** Ela se destina a quem deseja executar o projeto no próprio computador, fora do fluxo com GitHub Actions.
+
+Após clonar o repositório, entre na pasta do projeto e escolha uma das formas de execução abaixo.
 
 Para execução local, instale **JDK 21** e **Maven**. O Dockerfile utiliza Maven 3.9; o repositório não inclui Maven Wrapper. Confira as ferramentas:
 
@@ -65,7 +107,7 @@ O Java informado pelo Maven deve corresponder ao JDK 21. A primeira execução p
 
 Para execução em contêiner, instale o **Docker**, com o daemon em execução. Java e Maven são fornecidos pelas imagens do Dockerfile e dispensam instalação local nessa opção.
 
-## ▶️ Execução
+## ▶️ Execução local — **opcional**
 
 ### Com Maven
 
@@ -172,9 +214,9 @@ Os dois testes de [ProjetoControllerTest.java](src/test/java/br/edu/ads/projetos
 - HTTP 200, tipo de conteúdo JSON e os quatro campos do projeto em `/api/projetos/1`.
 - HTTP 404 ao consultar `/api/projetos/999`.
 
-O workflow [java-ci.yml](.github/workflows/java-ci.yml) executa `mvn -B verify` em Ubuntu com Temurin 21 a cada push, pull request ou acionamento manual. Ele valida o projeto; não publica a aplicação no Coolify.
+O workflow [java-ci.yml](.github/workflows/java-ci.yml) foi utilizado para executar `mvn -B verify` com Java 21 no GitHub Actions. **Consulte a chave `on:` nesse arquivo para confirmar os eventos de disparo configurados na versão atual**. No fork, um commit na branch monitorada deve iniciar a execução, desde que o Actions esteja habilitado e a configuração permita esse evento. O workflow valida o projeto; **não publica a aplicação no Coolify**.
 
-## 🚀 Publicação no Coolify
+## 🚀 Publicação no Coolify — **demonstração do professor**
 
 A publicação utilizada na disciplina é feita em uma VPS **Oracle Cloud ARM64 (Ampere A1)**. O Coolify obtém o código do GitHub, constrói a imagem a partir do Dockerfile e executa a aplicação em um contêiner Docker. Seu proxy reverso encaminha as requisições do domínio público para a porta interna `8080`, sem necessidade de expor essa porta diretamente à Internet.
 
@@ -211,7 +253,7 @@ Essa configuração pertence ao recurso no Coolify; não há instrução `HEALTH
 
 Os dados de exemplo são definidos em [ProjetoController.java](src/main/java/br/edu/ads/projetosapi/controller/ProjetoController.java). Alterações nesse arquivo exigem uma nova compilação e um novo deploy para aparecerem na aplicação publicada.
 
-Ao personalizar os dados, atualize também os valores esperados em `ProjetoControllerTest.java`. O fluxo da atividade é editar o código e os testes no fork, fazer commit e conferir o GitHub Actions. O professor realiza a publicação das versões selecionadas no Coolify.
+Ao personalizar os dados, atualize também os valores esperados em `ProjetoControllerTest.java`. O fluxo da atividade é editar o código e os testes no fork, fazer commit e conferir o GitHub Actions. A eventual publicação de uma versão selecionada é uma ação separada, sob responsabilidade do professor no Coolify.
 
 ## 👨‍💻 Autor
 
