@@ -22,8 +22,8 @@ class ProjetoControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/json"))
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.nome").value("Sistema de Gestao Academica"))
-                .andExpect(jsonPath("$.responsavel").value("Equipe ADS"))
+                .andExpect(jsonPath("$.nome").value("Portal de Estagios"))
+                .andExpect(jsonPath("$.responsavel").value("Equipe ConectaTech"))
                 .andExpect(jsonPath("$.status").value("Em desenvolvimento"));
     }
 
